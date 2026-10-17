@@ -35,8 +35,8 @@ The server listens on `http://localhost:8080`.
 Riot IDs are written `name#tag`. Leave out the `#` and URL-encode spaces:
 
 ```bash
-curl "http://localhost:8080/account/Dux%20Mea%20Lux/69420"
-curl "http://localhost:8080/matches/Dux%20Mea%20Lux/69420"
+curl "http://localhost:8080/account/name/tag"
+curl "http://localhost:8080/matches/name/tag"
 ```
 
 ## Notes
