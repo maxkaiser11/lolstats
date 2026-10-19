@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign up · lolstats</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200 font-sans">
+  <main class="w-full max-w-sm p-8 bg-slate-900 border border-slate-800 rounded-xl">
+    <h1 class="mb-6 text-2xl font-semibold">Create an account</h1>
+
+    {{if .Error}}
+      <div class="mb-4 px-3 py-2.5 text-sm text-red-300 bg-red-950/60 border border-red-900 rounded-md">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/signup" class="space-y-4">
+      <div>
+        <label for="email" class="block mb-1.5 text-sm text-slate-400">Email</label>
+        <input type="email" id="email" name="email" value="{{.Email}}" autocomplete="email" required
+          class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-md focus:outline-none focus:border-amber-400">
+      </div>
+
+      <div>
+        <label for="password" class="block mb-1.5 text-sm text-slate-400">Password</label>
+        <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" required
+          class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-md focus:outline-none focus:border-amber-400">
+      </div>
+
+      <button type="submit"
+        class="w-full py-3 font-semibold text-slate-950 bg-amber-400 rounded-md hover:bg-amber-300 cursor-pointer transition-colors">
+        Sign up
+      </button>
+    </form>
+
+    <p class="mt-5 text-center text-sm text-slate-400">
+      Already have an account? <a href="/login" class="text-amber-400 hover:underline">Log in</a>
+    </p>
+  </main>
+</body>
+</html>
