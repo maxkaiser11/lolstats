@@ -1,16 +1,22 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/maxkaiser11/lolstats/internal/database"
+)
+
+type homePage struct {
+	Title string
+	User  *database.User
+}
 
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
+	page := homePage{}
 
-	data := struct {
-		Title string
-	}{
-		Title: "Home",
+	if user, ok := currentUser(r); ok {
+		page.User = &user
 	}
 
-	if err := s.tmpl.ExecuteTemplate(w, "index.html", data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	s.tmpl.ExecuteTemplate(w, "index.html", page)
 }

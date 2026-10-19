@@ -10,6 +10,22 @@ import (
 	"github.com/google/uuid"
 )
 
+type RiotAccount struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Puuid     string
+	GameName  string
+	TagLine   string
+	CreatedAt time.Time
+}
+
+type Session struct {
+	TokenHash string
+	UserID    uuid.UUID
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}
+
 type User struct {
 	ID           uuid.UUID
 	Email        string

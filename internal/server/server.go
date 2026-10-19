@@ -25,13 +25,22 @@ func New(riotClient *riot.Client, db *database.Queries) *Server {
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /home", s.handleHome)
+	mux.HandleFunc("GET /", s.optionalAuth(s.handleHome))
 	mux.HandleFunc("GET /account/{name}/{tag}", s.handleRiotAccount)
 	mux.HandleFunc("GET /matches/{name}/{tag}", s.handleMatchIDs)
 	mux.HandleFunc("GET /signup", s.handleSignupPage)
 	mux.HandleFunc("POST /signup", s.handleSignup)
 	mux.HandleFunc("GET /login", s.handleLoginPage)
 	mux.HandleFunc("POST /login", s.handleLogin)
+	mux.HandleFunc("POST /logout", s.requireAuth(s.handleLogout))
+	mux.HandleFunc("GET /accounts",	 s.requireAuth(s.handleAccounts))
+	mux.HandleFunc("POST /accounts",	 s.requireAuth(s.handleAddAccount))
+	mux.HandleFunc("DELETE /accounts/{id}/delete",	 s.requireAuth(s.handleDeleteAccount))
+
+
+
 	mux.Handle("GET /static/", http.FileServerFS(web.Static))
-	return mux
+
+	handler := http.NewCrossOriginProtection().Handler(mux)
+	return handler
 }

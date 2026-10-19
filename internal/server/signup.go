@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/maxkaiser11/lolstats/internal/database"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type signupPage struct {
@@ -30,7 +29,7 @@ func (s *Server) handleSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err :=  hashPassword(password)
 	if err != nil {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return

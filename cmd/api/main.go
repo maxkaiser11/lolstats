@@ -28,7 +28,6 @@ func main() {
 
 	mux := server.New(riot.NewClient(os.Getenv("RIOT_API_KEY")), database.New(conn))
 
-
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", mux.Routes()))
 }
