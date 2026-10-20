@@ -62,6 +62,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		Path: "/",
 		Expires: expires,
 		HttpOnly: true,
+		Secure: r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 		SameSite: http.SameSiteLaxMode,
 	})
 

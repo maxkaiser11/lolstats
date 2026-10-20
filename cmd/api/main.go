@@ -15,7 +15,6 @@ import (
 	"github.com/maxkaiser11/lolstats/internal/server"
 )
 
-
 func main() {
 	// Load env vars
 	_ = godotenv.Load()
@@ -31,7 +30,6 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-
 	mux := server.New(riot.NewClient(os.Getenv("RIOT_API_KEY")), database.NewStore(conn))
 
 	champs, err := riot.LoadChampions(context.Background())
@@ -41,8 +39,11 @@ func main() {
 		mux.SetChampions(champs)
 	}
 
-	log.Println("Listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", mux.Routes()))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println("Listening on port " + port)
+	log.Fatal(http.ListenAndServe(":" + port, mux.Routes()))
 }
-
-
