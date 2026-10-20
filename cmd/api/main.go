@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -30,7 +31,16 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
+
 	mux := server.New(riot.NewClient(os.Getenv("RIOT_API_KEY")), database.NewStore(conn))
+
+	champs, err := riot.LoadChampions(context.Background())
+	if err != nil {
+		log.Printf("load champion data (names and icons disabled): %v", err)
+	} else {
+		mux.SetChampions(champs)
+	}
+
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", mux.Routes()))
 }

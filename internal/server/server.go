@@ -20,11 +20,13 @@ var _ RiotAPI = (*riot.Client)(nil)
 
 type Server struct {
 	riot RiotAPI
+	champs *riot.Champions
 	tmpl *template.Template
 	db   *database.Store
 }
 
 func New(riotClient RiotAPI, db *database.Store) *Server {
+	s := &Server{riot: riotClient, db: db}
 	funcs := template.FuncMap{
 		"duration": func(sec int32) string {
 			return fmt.Sprintf("%d:%02d", sec/60, sec%60)
@@ -32,12 +34,15 @@ func New(riotClient RiotAPI, db *database.Store) *Server {
 		"winrate": func(wins, games int64) int64 {
 			return wins * 100 / games
 		},
+		"champ": func(id string) string { return s.champs.Name(id) },
+		"champIcon": func(id string) string {return s.champs.IconURL(id) },
 	}
-	return &Server{
-		riot: riotClient,
-		db:   db,
-		tmpl: template.Must(template.New("").Funcs(funcs).ParseFS(web.Templates, "templates/*.html")),
-	}
+	s.tmpl = template.Must(template.New("").Funcs(funcs).ParseFS(web.Templates, "templates/*.html"))
+	return s
+}
+
+func (s *Server) SetChampions(c *riot.Champions) {
+	s.champs = c 
 }
 
 func (s *Server) Routes() http.Handler {
