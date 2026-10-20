@@ -45,5 +45,5 @@ func main() {
 	}
 
 	log.Println("Listening on port " + port)
-	log.Fatal(http.ListenAndServe(":" + port, mux.Routes()))
+	log.Fatal(http.ListenAndServe(":"+port, mux.Routes()))
 }

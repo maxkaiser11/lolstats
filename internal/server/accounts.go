@@ -17,7 +17,6 @@ type accountsPage struct {
 	Error    string
 }
 
-
 func (s *Server) handleAccounts(w http.ResponseWriter, r *http.Request) {
 	user, ok := currentUser(r)
 	if !ok {
@@ -41,7 +40,6 @@ func (s *Server) handleAddAccount(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	tag := strings.TrimPrefix(strings.TrimSpace(r.FormValue("tag")), "#")
 
-
 	acc, err := s.riot.AccountByRiotID("europe", name, tag)
 	if err != nil {
 		log.Printf("lookup riot account %s#%s: %v", name, tag, err)
@@ -50,15 +48,14 @@ func (s *Server) handleAddAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = s.db.AddRiotAccount(context.Background(), database.AddRiotAccountParams{
-		UserID: user.ID,
-		Puuid: acc.PUUID,
+		UserID:   user.ID,
+		Puuid:    acc.PUUID,
 		GameName: acc.GameName,
-		TagLine: acc.TagLine,
+		TagLine:  acc.TagLine,
 	})
 
 	if err != nil {
 		log.Printf("add account: %v", err)
-		return
 	}
 
 	http.Redirect(w, r, "/accounts", http.StatusSeeOther)

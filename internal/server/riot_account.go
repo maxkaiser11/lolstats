@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-
 func (s *Server) handleRiotAccount(w http.ResponseWriter, r *http.Request) {
 	acc, err := s.riot.AccountByRiotID("europe", r.PathValue("name"), r.PathValue("tag"))
 	if err != nil {

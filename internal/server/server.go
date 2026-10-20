@@ -19,10 +19,10 @@ type RiotAPI interface {
 var _ RiotAPI = (*riot.Client)(nil)
 
 type Server struct {
-	riot RiotAPI
+	riot   RiotAPI
 	champs *riot.Champions
-	tmpl *template.Template
-	db   *database.Store
+	tmpl   *template.Template
+	db     *database.Store
 }
 
 func New(riotClient RiotAPI, db *database.Store) *Server {
@@ -34,15 +34,15 @@ func New(riotClient RiotAPI, db *database.Store) *Server {
 		"winrate": func(wins, games int64) int64 {
 			return wins * 100 / games
 		},
-		"champ": func(id string) string { return s.champs.Name(id) },
-		"champIcon": func(id string) string {return s.champs.IconURL(id) },
+		"champ":     func(id string) string { return s.champs.Name(id) },
+		"champIcon": func(id string) string { return s.champs.IconURL(id) },
 	}
 	s.tmpl = template.Must(template.New("").Funcs(funcs).ParseFS(web.Templates, "templates/*.html"))
 	return s
 }
 
 func (s *Server) SetChampions(c *riot.Champions) {
-	s.champs = c 
+	s.champs = c
 }
 
 func (s *Server) Routes() http.Handler {

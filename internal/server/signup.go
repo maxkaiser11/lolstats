@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -29,13 +28,13 @@ func (s *Server) handleSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash, err :=  hashPassword(password)
+	hash, err := hashPassword(password)
 	if err != nil {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
 
-	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
+	_, err = s.db.CreateUser(context.Background(), database.CreateUserParams{
 		ID:           uuid.New(),
 		Email:        email,
 		PasswordHash: string(hash),
@@ -49,6 +48,4 @@ func (s *Server) handleSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/home", http.StatusSeeOther)
-
-	fmt.Printf("User created with email: %s", user.Email)
 }

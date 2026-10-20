@@ -48,24 +48,24 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.db.CreateSession(context.Background(), database.CreateSessionParams{
 		TokenHash: hashToken(sessionToken),
-		UserID: user.ID,
+		UserID:    user.ID,
 		ExpiresAt: time.Now().Add(sessionDuration),
 	}); err != nil {
 		log.Println("Failed to create session")
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
 
 	// Set Session cookie
 	http.SetCookie(w, &http.Cookie{
-		Name: "session_token",
-		Value: sessionToken,
-		Path: "/",
-		Expires: expires,
+		Name:     "session_token",
+		Value:    sessionToken,
+		Path:     "/",
+		Expires:  expires,
 		HttpOnly: true,
-		Secure: r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 		SameSite: http.SameSiteLaxMode,
 	})
-
 
 	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }
