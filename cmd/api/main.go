@@ -23,9 +23,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if err := conn.Ping(); err != nil {
+		log.Fatalf("connect to db: %v", err)
+	}
+	if err := database.Migrate(conn); err != nil {
+		log.Fatalf("migrate: %v", err)
+	}
 
 	mux := server.New(riot.NewClient(os.Getenv("RIOT_API_KEY")), database.New(conn))
-
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", mux.Routes()))
 }

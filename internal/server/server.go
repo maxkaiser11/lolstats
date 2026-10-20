@@ -10,13 +10,21 @@ import (
 	"github.com/maxkaiser11/lolstats/internal/web"
 )
 
+type RiotAPI interface {
+	AccountByRiotID(region, name, tag string) (*riot.Account, error)
+	MatchIDSByPUUID(puuid string, count int) ([]string, error)
+	MatchByID(id string) (*riot.Match, error)
+}
+
+var _ RiotAPI = (*riot.Client)(nil)
+
 type Server struct {
-	riot *riot.Client
+	riot RiotAPI
 	tmpl *template.Template
 	db   *database.Queries
 }
 
-func New(riotClient *riot.Client, db *database.Queries) *Server {
+func New(riotClient RiotAPI, db *database.Queries) *Server {
 	funcs := template.FuncMap{
 		"duration": func(sec int) string {
 			return fmt.Sprintf("%d:%02d", sec/60, sec%60)
@@ -33,7 +41,7 @@ func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", s.optionalAuth(s.handleHome))
 	mux.HandleFunc("GET /account/{name}/{tag}", s.handleRiotAccount)
-	mux.HandleFunc("GET /matches/{name}/{tag}", s.handleMatchIDs)
+	mux.HandleFunc("GET /matches/{name}/{tag}", s.optionalAuth(s.handleMatchIDs))
 	mux.HandleFunc("GET /signup", s.handleSignupPage)
 	mux.HandleFunc("POST /signup", s.handleSignup)
 	mux.HandleFunc("GET /login", s.handleLoginPage)

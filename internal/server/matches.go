@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/maxkaiser11/lolstats/internal/database"
 	"github.com/maxkaiser11/lolstats/internal/riot"
 )
 
@@ -37,12 +38,16 @@ func (s *Server) handleMatchIDs(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		Name  string
+		User *database.User
 		Games []riot.Participant
 		Matches []riot.Match
 	}{
 		Name:  r.PathValue("name"),
 		Games: games,
 		Matches: matches,
+	}
+	if user, ok := currentUser(r); ok {
+		data.User = &user
 	}
 
 
