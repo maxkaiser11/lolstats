@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -23,12 +22,9 @@ func TestMatchesPage(t *testing.T) {
 		matchIDs: []string{"EUW1_123"},
 		matches:  map[string]*riot.Match{"EUW1_123": m},
 	}
-	s := New(fake, nil) // this route doesn't touch the database when logged out
+	h := New(fake, nil).Routes() // this route doesn't touch the database when logged out
 
-	req := httptest.NewRequest("GET", "/matches/Faker/KR1", nil)
-	rec := httptest.NewRecorder()
-	s.Routes().ServeHTTP(rec, req)
-
+	rec := get(h, "/matches/Faker/KR1", nil)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
@@ -45,13 +41,9 @@ func TestMatchesPage(t *testing.T) {
 }
 
 func TestMatchesPageRiotError(t *testing.T) {
-	s := New(&fakeRiot{err: errors.New("riot is down")}, nil)
+	h := New(&fakeRiot{err: errors.New("riot is down")}, nil).Routes()
 
-	req := httptest.NewRequest("GET", "/matches/Faker/KR1", nil)
-	rec := httptest.NewRecorder()
-	s.Routes().ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusBadGateway {
+	if rec := get(h, "/matches/Faker/KR1", nil); rec.Code != http.StatusBadGateway {
 		t.Fatalf("status = %d, want 502", rec.Code)
 	}
 }

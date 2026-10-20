@@ -6,9 +6,8 @@ import (
 	"testing"
 )
 
-
 func TestAuthRequired(t *testing.T) {
-	s := New(&fakeRiot{}, nil)
+	h := New(&fakeRiot{}, nil).Routes()
 
 	tests := []struct {
 		method, path string
@@ -22,7 +21,7 @@ func TestAuthRequired(t *testing.T) {
 		t.Run(tt.method+" "+tt.path, func(t *testing.T) {
 			req := httptest.NewRequest(tt.method, tt.path, nil)
 			rec := httptest.NewRecorder()
-			s.Routes().ServeHTTP(rec, req)
+			h.ServeHTTP(rec, req)
 
 			if rec.Code != http.StatusSeeOther {
 				t.Fatalf("status = %d, want 303", rec.Code)
@@ -35,12 +34,12 @@ func TestAuthRequired(t *testing.T) {
 }
 
 func TestCrossOriginPostBlocked(t *testing.T) {
-	s := New(&fakeRiot{}, nil)
+	h := New(&fakeRiot{}, nil).Routes()
 
 	req := httptest.NewRequest("POST", "/login", nil)
 	req.Header.Set("Sec-Fetch-Site", "cross-site")
 	rec := httptest.NewRecorder()
-	s.Routes().ServeHTTP(rec, req)
+	h.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("status = %d, want 403", rec.Code)
