@@ -51,7 +51,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		UserID:    user.ID,
 		ExpiresAt: time.Now().Add(sessionDuration),
 	}); err != nil {
-		log.Println("Failed to create session")
+		log.Printf("create session: %v", err)
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
