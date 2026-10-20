@@ -35,8 +35,9 @@ type Match struct {
 		MatchID string `json:"matchId"`
 	} `json:"metadata"`
 	Info struct {
-		GameDuration int `json:"gameDuration"`
-		QueueID int `json:"queueId"`
+		GameCreation int64         `json:"gameCreation"`
+		GameDuration int           `json:"gameDuration"`
+		QueueID      int           `json:"queueId"`
 		Participants []Participant `json:"participants"`
 	} `json:"info"`
 }
@@ -89,7 +90,6 @@ func (c *Client) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
 	return matchIds, nil
 }
 
-
 func (c *Client) MatchByID(id string) (*Match, error) {
 	u := fmt.Sprintf("https://%s.api.riotgames.com/lol/match/v5/matches/%s", c.region, id)
 
@@ -99,5 +99,4 @@ func (c *Client) MatchByID(id string) (*Match, error) {
 		return nil, err
 	}
 	return &m, nil
-
 }
