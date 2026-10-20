@@ -36,7 +36,7 @@ type Match struct {
 	} `json:"metadata"`
 	Info struct {
 		GameDuration int `json:"gameDuration"`
-		QueueID int `json:"queueID"`
+		QueueID int `json:"queueId"`
 		Participants []Participant `json:"participants"`
 	} `json:"info"`
 }

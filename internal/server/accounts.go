@@ -44,7 +44,9 @@ func (s *Server) handleAddAccount(w http.ResponseWriter, r *http.Request) {
 
 	acc, err := s.riot.AccountByRiotID("europe", name, tag)
 	if err != nil {
+		log.Printf("lookup riot account %s#%s: %v", name, tag, err)
 		http.Redirect(w, r, "/accounts", http.StatusSeeOther)
+		return
 	}
 
 	_, err = s.db.AddRiotAccount(context.Background(), database.AddRiotAccountParams{
@@ -56,6 +58,7 @@ func (s *Server) handleAddAccount(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("add account: %v", err)
+		return
 	}
 
 	http.Redirect(w, r, "/accounts", http.StatusSeeOther)

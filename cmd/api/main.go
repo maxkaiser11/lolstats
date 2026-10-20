@@ -17,9 +17,7 @@ import (
 
 func main() {
 	// Load env vars
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 
 	conn, err := sql.Open("postgres", os.Getenv("DB_URL"))
 	if err != nil {

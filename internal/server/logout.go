@@ -4,7 +4,7 @@ import "net/http"
 
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
-	if cookie, err := r.Cookie("session_token"); err != nil {
+	if cookie, err := r.Cookie("session_token"); err == nil {
 		s.db.DeleteSession(r.Context(), hashToken(cookie.Value))
 	}
 	http.SetCookie(w, &http.Cookie{

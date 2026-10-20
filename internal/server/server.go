@@ -41,7 +41,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /logout", s.requireAuth(s.handleLogout))
 	mux.HandleFunc("GET /accounts", s.requireAuth(s.handleAccounts))
 	mux.HandleFunc("POST /accounts", s.requireAuth(s.handleAddAccount))
-	mux.HandleFunc("DELETE /accounts/{id}/delete", s.requireAuth(s.handleDeleteAccount))
+	mux.HandleFunc("POST /accounts/{id}/delete", s.requireAuth(s.handleDeleteAccount))
 
 	mux.Handle("GET /static/", http.FileServerFS(web.Static))
 

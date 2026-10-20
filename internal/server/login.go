@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -45,11 +46,14 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	sessionToken := generateToken(32)
 	expires := time.Now().Add(sessionDuration)
 
-	s.db.CreateSession(context.Background(), database.CreateSessionParams{
+	if err := s.db.CreateSession(context.Background(), database.CreateSessionParams{
 		TokenHash: hashToken(sessionToken),
 		UserID: user.ID,
 		ExpiresAt: time.Now().Add(sessionDuration),
-	})
+	}); err != nil {
+		log.Println("Failed to create session")
+		return
+	}
 
 	// Set Session cookie
 	http.SetCookie(w, &http.Cookie{
