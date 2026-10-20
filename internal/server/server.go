@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -16,10 +17,15 @@ type Server struct {
 }
 
 func New(riotClient *riot.Client, db *database.Queries) *Server {
+	funcs := template.FuncMap{
+		"duration": func(sec int) string {
+			return fmt.Sprintf("%d:%02d", sec/60, sec%60)
+		},
+	}
 	return &Server{
 		riot: riotClient,
 		db:   db,
-		tmpl: template.Must(template.ParseFS(web.Templates, "templates/*.html")),
+		tmpl: template.Must(template.New("").Funcs(funcs).ParseFS(web.Templates, "templates/*.html")),
 	}
 }
 
@@ -33,11 +39,9 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /login", s.handleLoginPage)
 	mux.HandleFunc("POST /login", s.handleLogin)
 	mux.HandleFunc("POST /logout", s.requireAuth(s.handleLogout))
-	mux.HandleFunc("GET /accounts",	 s.requireAuth(s.handleAccounts))
-	mux.HandleFunc("POST /accounts",	 s.requireAuth(s.handleAddAccount))
-	mux.HandleFunc("DELETE /accounts/{id}/delete",	 s.requireAuth(s.handleDeleteAccount))
-
-
+	mux.HandleFunc("GET /accounts", s.requireAuth(s.handleAccounts))
+	mux.HandleFunc("POST /accounts", s.requireAuth(s.handleAddAccount))
+	mux.HandleFunc("DELETE /accounts/{id}/delete", s.requireAuth(s.handleDeleteAccount))
 
 	mux.Handle("GET /static/", http.FileServerFS(web.Static))
 

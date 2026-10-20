@@ -21,7 +21,6 @@ type Account struct {
 	TagLine  string `json:"tagLine"`
 }
 
-// https://europe.api.riotgames.com/lol/match/v5/matches/{matchId}
 type Participant struct {
 	PUUID        string `json:"puuid"`
 	ChampionName string `json:"championName"`
