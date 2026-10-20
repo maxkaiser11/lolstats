@@ -10,39 +10,20 @@ import (
 	"github.com/maxkaiser11/lolstats/internal/riot"
 )
 
-type fakeRiot struct {
-	account  *riot.Account
-	matchIDs []string
-	matches  map[string]*riot.Match
-	err      error
-}
-
-func (f *fakeRiot) AccountByRiotID(region, name, tag string) (*riot.Account, error) {
-	return f.account, f.err
-}
-
-func (f *fakeRiot) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
-	return f.matchIDs, f.err
-}
-
-func (f *fakeRiot) MatchByID(id string) (*riot.Match, error) {
-	return f.matches[id], f.err
-}
-
 func TestMatchesPage(t *testing.T) {
 	m := &riot.Match{}
-	m.Info.GameDuration = 1805
+	m.Info.GameDuration = 1805 // 30:05
 	m.Info.Participants = []riot.Participant{
 		{PUUID: "other-player", ChampionName: "Zed"},
 		{PUUID: "faker-puuid", ChampionName: "Ahri", Kills: 10, Deaths: 2, Assists: 7, Win: true},
 	}
+
 	fake := &fakeRiot{
 		account:  &riot.Account{PUUID: "faker-puuid", GameName: "Faker", TagLine: "KR1"},
 		matchIDs: []string{"EUW1_123"},
 		matches:  map[string]*riot.Match{"EUW1_123": m},
 	}
-
-	s := New(fake, nil)
+	s := New(fake, nil) // this route doesn't touch the database when logged out
 
 	req := httptest.NewRequest("GET", "/matches/Faker/KR1", nil)
 	rec := httptest.NewRecorder()

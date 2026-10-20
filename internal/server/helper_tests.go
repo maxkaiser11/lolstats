@@ -1,0 +1,92 @@
+package server
+
+import (
+	"database/sql"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"strings"
+	"testing"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+
+	"github.com/maxkaiser11/lolstats/internal/database"
+	"github.com/maxkaiser11/lolstats/internal/riot"
+)
+
+// fakeRiot returns whatever data the test gives it, without any network calls.
+type fakeRiot struct {
+	account  *riot.Account
+	matchIDs []string
+	matches  map[string]*riot.Match
+	err      error
+}
+
+func (f *fakeRiot) AccountByRiotID(region, name, tag string) (*riot.Account, error) {
+	return f.account, f.err
+}
+
+func (f *fakeRiot) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
+	return f.matchIDs, f.err
+}
+
+func (f *fakeRiot) MatchByID(id string) (*riot.Match, error) {
+	return f.matches[id], f.err
+}
+
+// testDB connects to the test database, runs migrations and empties every table.
+// It skips the test if TEST_DB_URL isn't set, so `go test` still works without Docker.
+func testDB(t *testing.T) *sql.DB {
+	t.Helper()
+	_ = godotenv.Load("../../.env")
+	dsn := os.Getenv("TEST_DB_URL")
+	if dsn == "" {
+		t.Skip("TEST_DB_URL not set")
+	}
+
+	conn, err := sql.Open("postgres", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { conn.Close() })
+
+	if err := database.Migrate(conn); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	if _, err := conn.Exec("TRUNCATE users, sessions, riot_accounts CASCADE"); err != nil {
+		t.Fatalf("truncate: %v", err)
+	}
+	return conn
+}
+
+// postForm sends a form POST through the handler, with an optional session cookie.
+func postForm(h http.Handler, path string, form url.Values, cookie *http.Cookie) *httptest.ResponseRecorder {
+	req := httptest.NewRequest("POST", path, strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if cookie != nil {
+		req.AddCookie(cookie)
+	}
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
+}
+
+// signupAndLogin creates a user, logs in and returns their session cookie.
+func signupAndLogin(t *testing.T, h http.Handler, email string) *http.Cookie {
+	t.Helper()
+	form := url.Values{"email": {email}, "password": {"password123"}}
+
+	if rec := postForm(h, "/signup", form, nil); rec.Code != http.StatusSeeOther {
+		t.Fatalf("signup %s: status %d", email, rec.Code)
+	}
+	rec := postForm(h, "/login", form, nil)
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == "session_token" {
+			return c
+		}
+	}
+	t.Fatalf("login %s: no session cookie", email)
+	return nil
+}
