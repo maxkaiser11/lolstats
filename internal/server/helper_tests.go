@@ -23,6 +23,7 @@ type fakeRiot struct {
 	matchIDs []string
 	matches  map[string]*riot.Match
 	err      error
+	matchCalls int
 }
 
 func (f *fakeRiot) AccountByRiotID(region, name, tag string) (*riot.Account, error) {
@@ -34,6 +35,7 @@ func (f *fakeRiot) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
 }
 
 func (f *fakeRiot) MatchByID(id string) (*riot.Match, error) {
+	f.matchCalls++
 	return f.matches[id], f.err
 }
 
@@ -56,7 +58,7 @@ func testDB(t *testing.T) *sql.DB {
 	if err := database.Migrate(conn); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
-	if _, err := conn.Exec("TRUNCATE users, sessions, riot_accounts CASCADE"); err != nil {
+if _, err := conn.Exec("TRUNCATE users, sessions, riot_accounts, matches, match_participants CASCADE"); err != nil {
 		t.Fatalf("truncate: %v", err)
 	}
 	return conn
@@ -104,7 +106,7 @@ func signupAndLogin(t *testing.T, h http.Handler, email string) *http.Cookie {
 }
 
 // accountsFor returns the saved Riot accounts of the user with this email.
-func accountsFor(t *testing.T, db *database.Queries, email string) []database.RiotAccount {
+func accountsFor(t *testing.T, db *database.Store, email string) []database.RiotAccount {
 	t.Helper()
 	ctx := context.Background()
 	user, err := db.GetUserByEmail(ctx, email)

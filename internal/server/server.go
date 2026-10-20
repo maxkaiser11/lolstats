@@ -21,13 +21,16 @@ var _ RiotAPI = (*riot.Client)(nil)
 type Server struct {
 	riot RiotAPI
 	tmpl *template.Template
-	db   *database.Queries
+	db   *database.Store
 }
 
-func New(riotClient RiotAPI, db *database.Queries) *Server {
+func New(riotClient RiotAPI, db *database.Store) *Server {
 	funcs := template.FuncMap{
-		"duration": func(sec int) string {
+		"duration": func(sec int32) string {
 			return fmt.Sprintf("%d:%02d", sec/60, sec%60)
+		},
+		"winrate": func(wins, games int64) int64 {
+			return wins * 100 / games
 		},
 	}
 	return &Server{
@@ -41,7 +44,7 @@ func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", s.optionalAuth(s.handleHome))
 	mux.HandleFunc("GET /account/{name}/{tag}", s.handleRiotAccount)
-	mux.HandleFunc("GET /matches/{name}/{tag}", s.optionalAuth(s.handleMatchIDs))
+	mux.HandleFunc("GET /matches/{name}/{tag}", s.optionalAuth(s.handleMatches))
 	mux.HandleFunc("GET /signup", s.handleSignupPage)
 	mux.HandleFunc("POST /signup", s.handleSignup)
 	mux.HandleFunc("GET /login", s.handleLoginPage)

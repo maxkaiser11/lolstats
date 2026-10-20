@@ -10,6 +10,24 @@ import (
 	"github.com/google/uuid"
 )
 
+type Match struct {
+	MatchID      string
+	QueueID      int32
+	GameDuration int32
+	GameCreation time.Time
+	CreatedAt    time.Time
+}
+
+type MatchParticipant struct {
+	MatchID      string
+	Puuid        string
+	ChampionName string
+	Kills        int32
+	Deaths       int32
+	Assists      int32
+	Win          bool
+}
+
 type RiotAccount struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID

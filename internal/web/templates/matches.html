@@ -3,44 +3,74 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{.Name}} – Matches</title>
+    <title>{{.Name}} #{{.Tag}} · lolstats</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-slate-100 antialiased">
     {{template "nav" .}}
-    <main class="mx-auto max-w-2xl px-4 py-12">
+
+    <main class="mx-auto max-w-3xl px-4 py-12">
       <header class="mb-8">
-        <p class="text-sm uppercase tracking-widest text-slate-400">Recent matches</p>
-        <h1 class="mt-1 text-3xl font-bold">{{.Name}}</h1>
+        <p class="text-sm uppercase tracking-widest text-slate-400">Player</p>
+        <h1 class="mt-1 text-3xl font-bold">{{.Name}} <span class="text-slate-500">#{{.Tag}}</span></h1>
       </header>
 
+      {{if .Stats}}
+      <section class="mb-10">
+        <h2 class="mb-3 text-sm uppercase tracking-widest text-slate-400">Champions</h2>
+        <div class="overflow-hidden rounded-xl ring-1 ring-white/5">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-800/80 text-left text-slate-400">
+              <tr>
+                <th class="px-4 py-2 font-medium">Champion</th>
+                <th class="px-4 py-2 font-medium text-right">Games</th>
+                <th class="px-4 py-2 font-medium text-right">Win rate</th>
+                <th class="px-4 py-2 font-medium text-right">Avg K / D / A</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              {{range .Stats}}
+              <tr class="bg-slate-900/60">
+                <td class="px-4 py-2 font-medium">{{.ChampionName}}</td>
+                <td class="px-4 py-2 text-right font-mono">{{.Games}}</td>
+                <td class="px-4 py-2 text-right font-mono">{{winrate .Wins .Games}}%</td>
+                <td class="px-4 py-2 text-right font-mono">
+                  {{printf "%.1f" .AvgKills}} / {{printf "%.1f" .AvgDeaths}} / {{printf "%.1f" .AvgAssists}}
+                </td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {{end}}
+
+      <h2 class="mb-3 text-sm uppercase tracking-widest text-slate-400">Recent matches</h2>
       <ul class="space-y-3">
-        {{range $i, $g := .Games}}
-          {{$m := index $.Matches $i}}
-          <li class="flex items-center justify-between rounded-xl border-l-4 bg-slate-800/60 px-5 py-4 shadow-lg ring-1 ring-white/5 transition hover:bg-slate-800
-                     {{if .Win}}border-emerald-500{{else}}border-rose-500{{end}}">
-            <div>
-              <p class="text-lg font-semibold">{{$g.ChampionName}}</p>
-              <p class="text-sm {{if .Win}}text-emerald-400{{else}}text-rose-400{{end}}">
-                {{if .Win}}Victory{{else}}Defeat{{end}}
-              </p>
-            </div>
-            <div class="text-right font-mono">
-              <p class="text-lg">
-                <span class="text-slate-100">{{$g.Kills}}</span>
-                <span class="text-slate-500">/</span>
-                <span class="text-rose-400">{{$g.Deaths}}</span>
-                <span class="text-slate-500">/</span>
-                <span class="text-slate-100">{{$g.Assists}}</span>
-              </p>
-              <p class="text-xs uppercase tracking-wide text-slate-500">K / D / A</p>
-              <span class="text-slate-100">{{duration $m.Info.GameDuration}}</span>
-            </div>
-          </li>
+        {{range .Games}}
+        <li class="flex items-center justify-between rounded-xl border-l-4 bg-slate-800/60 px-5 py-4 shadow-lg ring-1 ring-white/5 transition hover:bg-slate-800
+                   {{if .Win}}border-emerald-500{{else}}border-rose-500{{end}}">
+          <div>
+            <p class="text-lg font-semibold">{{.ChampionName}}</p>
+            <p class="text-sm {{if .Win}}text-emerald-400{{else}}text-rose-400{{end}}">
+              {{if .Win}}Victory{{else}}Defeat{{end}}
+            </p>
+            <p class="text-xs text-slate-500">{{.GameCreation.Format "2 Jan 15:04"}}</p>
+          </div>
+          <div class="text-right font-mono">
+            <p class="text-lg">
+              <span class="text-slate-100">{{.Kills}}</span>
+              <span class="text-slate-500">/</span>
+              <span class="text-rose-400">{{.Deaths}}</span>
+              <span class="text-slate-500">/</span>
+              <span class="text-slate-100">{{.Assists}}</span>
+            </p>
+            <p class="text-xs uppercase tracking-wide text-slate-500">K / D / A</p>
+            <p class="text-sm text-slate-400">{{duration .GameDuration}}</p>
+          </div>
+        </li>
         {{else}}
-          <li class="rounded-xl bg-slate-800/60 px-5 py-8 text-center text-slate-400">
-            No games found
-          </li>
+        <li class="rounded-xl bg-slate-800/60 px-5 py-8 text-center text-slate-400">No games found</li>
         {{end}}
       </ul>
     </main>

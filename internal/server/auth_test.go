@@ -13,7 +13,7 @@ import (
 
 func TestLoginGivesAccess(t *testing.T) {
 	conn := testDB(t)
-	h := New(&fakeRiot{}, database.New(conn)).Routes()
+	h := New(&fakeRiot{}, database.NewStore(conn)).Routes()
 
 	cookie := signupAndLogin(t, h, "max@example.com")
 
@@ -24,7 +24,7 @@ func TestLoginGivesAccess(t *testing.T) {
 
 func TestLoginWrongCredentials(t *testing.T) {
 	conn := testDB(t)
-	h := New(&fakeRiot{}, database.New(conn)).Routes()
+	h := New(&fakeRiot{}, database.NewStore(conn)).Routes()
 	signupAndLogin(t, h, "max@example.com")
 
 	tests := []struct {
@@ -55,7 +55,7 @@ func TestLoginWrongCredentials(t *testing.T) {
 
 func TestLogoutDeletesSession(t *testing.T) {
 	conn := testDB(t)
-	h := New(&fakeRiot{}, database.New(conn)).Routes()
+	h := New(&fakeRiot{}, database.NewStore(conn)).Routes()
 
 	cookie := signupAndLogin(t, h, "max@example.com")
 	postForm(h, "/logout", nil, cookie)
@@ -69,7 +69,7 @@ func TestLogoutDeletesSession(t *testing.T) {
 
 func TestInvalidRiotIDSavesNothing(t *testing.T) {
 	conn := testDB(t)
-	db := database.New(conn)
+	db := database.NewStore(conn)
 	h := New(&fakeRiot{err: errors.New("account not found")}, db).Routes()
 
 	cookie := signupAndLogin(t, h, "max@example.com")
@@ -82,7 +82,7 @@ func TestInvalidRiotIDSavesNothing(t *testing.T) {
 
 func TestCannotDeleteOtherUsersAccount(t *testing.T) {
 	conn := testDB(t)
-	db := database.New(conn)
+	db := database.NewStore(conn)
 	fake := &fakeRiot{account: &riot.Account{PUUID: "puuid-a", GameName: "PlayerA", TagLine: "EUW"}}
 	h := New(fake, db).Routes()
 
