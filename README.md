@@ -2,8 +2,7 @@
 
 A Go + Postgres web app for looking up League of Legends players, with match caching, per-champion stats, user accounts and a tested codebase.
 
-**Live demo:** https://lolstats-f20d.onrender.com
-*(Hosted on Render's free tier, so the first load after a quiet period can take up to a minute while the server wakes up.)*
+**Live demo:** https://lolstats-production-a282669c.up.railway.app
 
 ![lolstats player page](docs/screenshot.png)
 
