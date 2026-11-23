@@ -19,7 +19,7 @@ func main() {
 	// Load env vars
 	_ = godotenv.Load()
 
-	conn, err := sql.Open("postgres", os.Getenv("DB_URL"))
+	conn, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
