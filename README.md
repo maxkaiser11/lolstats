@@ -38,7 +38,7 @@ Champion display names and icons come from [Data Dragon](https://developer.riotg
 - **Docker** multi-stage build and Docker Compose for the app and database
 - **Riot API** client with rate-limit retry, plus **Data Dragon** for champion data
 - **Tests** with `net/http/httptest`, a fake Riot client and a real Postgres test database
-- **Deployed** on [Render](https://render.com/)
+- **Deployed** on [Railway](https://railway.com/)
 
 ## Quick start
 
@@ -119,7 +119,7 @@ Tests that need the database are skipped if `TEST_DB_URL` isn't set, so the rest
 
 ## Deployment
 
-The live demo runs on Render as a Docker web service with a managed Postgres database. Configuration comes from environment variables (`RIOT_API_KEY`, `DB_URL`), and migrations run automatically on startup, so a deploy is just a push to `main`.
+The live demo runs on Railway as a Docker web service with a managed Postgres database. Configuration comes from environment variables (`RIOT_API_KEY`, `DB_URL`), and migrations run automatically on startup, so a deploy is just a push to `main`.
 
 ## Project structure
 
