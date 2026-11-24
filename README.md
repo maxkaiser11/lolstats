@@ -2,7 +2,7 @@
 
 A Go + Postgres web app for looking up League of Legends players, with match caching, per-champion stats, user accounts and a tested codebase.
 
-**Live demo:** https://lolstats-production-a282669c.up.railway.app
+**Live demo:** <https://lolstats-production-a282669c.up.railway.app>
 
 ![lolstats player page](docs/screenshot.png)
 
@@ -52,7 +52,7 @@ docker compose up --build
 The app runs at `http://localhost:8080`. Database migrations run automatically when the app starts.
 
 | Command                        | What it does                        |
-|--------------------------------|-------------------------------------|
+| ------------------------------ | ----------------------------------- |
 | `docker compose up --build -d` | Build and start in the background   |
 | `docker compose logs -f app`   | Follow the app's logs               |
 | `docker compose down`          | Stop the containers (data is kept)  |
@@ -70,7 +70,7 @@ Then add the database URL to `.env`:
 
 ```
 RIOT_API_KEY=RGAPI-xxxx
-DB_URL=postgres://postgres:postgres@localhost:5432/lolstats?sslmode=disable
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/lolstats?sslmode=disable
 ```
 
 and run:
@@ -79,7 +79,8 @@ and run:
 go run ./cmd/api
 ```
 
-Requires Go 1.27+. If you change anything in `internal/database/queries/` or `internal/database/schema/`, regenerate the query code with [sqlc](https://docs.sqlc.dev/en/latest/overview/install.html):
+Requires Go 1.27+. If you change anything in `internal/database/queries/` or `internal/database/schema/`, regenerate the query code with
+[sqlc](https://docs.sqlc.dev/en/latest/overview/install.html):
 
 ```
 sqlc generate
@@ -145,7 +146,7 @@ lolstats/
 ## Routes
 
 | Method   | Path                    | Auth     | Description                                   |
-|----------|-------------------------|----------|-----------------------------------------------|
+| -------- | ----------------------- | -------- | --------------------------------------------- |
 | GET      | `/`                     | optional | Landing page with player search               |
 | GET      | `/account/{name}/{tag}` | —        | Look up an account by Riot ID                 |
 | GET      | `/matches/{name}/{tag}` | optional | Champion stats and the 20 most recent matches |
