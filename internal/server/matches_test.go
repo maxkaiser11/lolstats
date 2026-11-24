@@ -62,6 +62,40 @@ func TestMatchesAreCached(t *testing.T) {
 	}
 }
 
+func TestMatchesUsePlayersHomeRegion(t *testing.T) {
+	conn := testDB(t)
+	fake := fakeWithOneMatch()
+	fake.matchRegion = "asia" // a Korean player
+	h := New(fake, database.NewStore(conn)).Routes()
+
+	get(h, "/matches/Faker/KR1", nil)
+
+	if len(fake.regionsUsed) == 0 {
+		t.Fatal("no match-v5 calls were made")
+	}
+	for _, r := range fake.regionsUsed {
+		if r != "asia" {
+			t.Fatalf("match-v5 call routed to %q, want asia (regions used: %v)", r, fake.regionsUsed)
+		}
+	}
+}
+
+func TestMatchesRegionLookupFallsBackToEurope(t *testing.T) {
+	conn := testDB(t)
+	fake := fakeWithOneMatch()
+	fake.regionErr = errors.New("region endpoint down")
+	h := New(fake, database.NewStore(conn)).Routes()
+
+	if rec := get(h, "/matches/Faker/KR1", nil); rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	for _, r := range fake.regionsUsed {
+		if r != "europe" {
+			t.Fatalf("match-v5 call routed to %q, want europe fallback", r)
+		}
+	}
+}
+
 func TestMatchesPageRiotError(t *testing.T) {
 	// The account lookup fails before the database is touched, so nil is fine here.
 	h := New(&fakeRiot{err: errors.New("riot is down")}, nil).Routes()

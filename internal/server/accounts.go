@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/maxkaiser11/lolstats/internal/database"
+	"github.com/maxkaiser11/lolstats/internal/riot"
 )
 
 type accountsPage struct {
@@ -40,7 +41,7 @@ func (s *Server) handleAddAccount(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	tag := strings.TrimPrefix(strings.TrimSpace(r.FormValue("tag")), "#")
 
-	acc, err := s.riot.AccountByRiotID("europe", name, tag)
+	acc, err := s.riot.AccountByRiotID(riot.AccountRegion, name, tag)
 	if err != nil {
 		log.Printf("lookup riot account %s#%s: %v", name, tag, err)
 		http.Redirect(w, r, "/accounts", http.StatusSeeOther)

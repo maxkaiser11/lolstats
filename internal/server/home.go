@@ -7,8 +7,7 @@ import (
 )
 
 type homePage struct {
-	Title string
-	User  *database.User
+	User *database.User
 }
 
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {

@@ -6,13 +6,21 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
+// AccountRegion is the routing value used for Riot account lookups. The
+// account-v1 API serves every player from any regional cluster.
+const AccountRegion = "europe"
+
+// DefaultMatchRegion is used for match-v5 calls when a player's home region
+// can't be determined.
+const DefaultMatchRegion = "europe"
+
 type Client struct {
-	key    string
-	region string
-	http   *http.Client
+	key  string
+	http *http.Client
 }
 
 type Account struct {
@@ -43,7 +51,25 @@ type Match struct {
 }
 
 func NewClient(key string) *Client {
-	return &Client{key: key, region: "europe", http: &http.Client{Timeout: 10 * time.Second}}
+	return &Client{key: key, http: &http.Client{Timeout: 10 * time.Second}}
+}
+
+// platformToRegion maps a League platform (the server a player plays on) to
+// the regional cluster that serves its match-v5 data.
+var platformToRegion = map[string]string{
+	"na1": "americas", "br1": "americas", "la1": "americas", "la2": "americas",
+	"kr": "asia", "jp1": "asia",
+	"euw1": "europe", "eun1": "europe", "tr1": "europe", "ru": "europe", "me1": "europe",
+	"oc1": "sea", "sg2": "sea", "tw2": "sea", "vn2": "sea", "ph2": "sea", "th2": "sea",
+}
+
+// MatchRegion returns the match-v5 routing cluster for a platform such as
+// "euw1" or "kr". Unknown platforms fall back to DefaultMatchRegion.
+func MatchRegion(platform string) string {
+	if r, ok := platformToRegion[strings.ToLower(platform)]; ok {
+		return r
+	}
+	return DefaultMatchRegion
 }
 
 func (c *Client) get(u string, out any) error {
@@ -79,9 +105,24 @@ func (c *Client) AccountByRiotID(region, name, tag string) (*Account, error) {
 	return &account, c.get(u, &account)
 }
 
-func (c *Client) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
+// MatchRegionByPUUID looks up which platform the player plays League on and
+// returns the regional cluster to use for their match history.
+func (c *Client) MatchRegionByPUUID(puuid string) (string, error) {
+	u := fmt.Sprintf("https://%s.api.riotgames.com/riot/account/v1/region/by-game/lol/by-puuid/%s",
+		AccountRegion, url.PathEscape(puuid))
+
+	var res struct {
+		Region string `json:"region"` // a platform, e.g. "euw1" or "kr"
+	}
+	if err := c.get(u, &res); err != nil {
+		return "", err
+	}
+	return MatchRegion(res.Region), nil
+}
+
+func (c *Client) MatchIDSByPUUID(region, puuid string, count int) ([]string, error) {
 	u := fmt.Sprintf("https://%s.api.riotgames.com/lol/match/v5/matches/by-puuid/%s/ids?start=0&count=%d",
-		c.region, puuid, count)
+		region, url.PathEscape(puuid), count)
 
 	var matchIds []string
 	if err := c.get(u, &matchIds); err != nil {
@@ -90,8 +131,8 @@ func (c *Client) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
 	return matchIds, nil
 }
 
-func (c *Client) MatchByID(id string) (*Match, error) {
-	u := fmt.Sprintf("https://%s.api.riotgames.com/lol/match/v5/matches/%s", c.region, id)
+func (c *Client) MatchByID(region, id string) (*Match, error) {
+	u := fmt.Sprintf("https://%s.api.riotgames.com/lol/match/v5/matches/%s", region, url.PathEscape(id))
 
 	var m Match
 

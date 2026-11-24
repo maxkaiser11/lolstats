@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -27,4 +28,10 @@ func generateToken(length int) string {
 func hashToken(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
 	return hex.EncodeToString(sum[:])
+}
+
+// isHTTPS reports whether the request reached us over HTTPS, either directly
+// or through a proxy such as Railway's that sets X-Forwarded-Proto.
+func isHTTPS(r *http.Request) bool {
+	return r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
 }

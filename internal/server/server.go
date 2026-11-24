@@ -12,8 +12,9 @@ import (
 
 type RiotAPI interface {
 	AccountByRiotID(region, name, tag string) (*riot.Account, error)
-	MatchIDSByPUUID(puuid string, count int) ([]string, error)
-	MatchByID(id string) (*riot.Match, error)
+	MatchRegionByPUUID(puuid string) (string, error)
+	MatchIDSByPUUID(region, puuid string, count int) ([]string, error)
+	MatchByID(region, id string) (*riot.Match, error)
 }
 
 var _ RiotAPI = (*riot.Client)(nil)
@@ -47,7 +48,8 @@ func (s *Server) SetChampions(c *riot.Champions) {
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", s.optionalAuth(s.handleHome))
+	mux.HandleFunc("GET /{$}", s.optionalAuth(s.handleHome)) // exactly "/"; other unknown paths get a 404
+	mux.Handle("GET /home", http.RedirectHandler("/", http.StatusMovedPermanently))
 	mux.HandleFunc("GET /account/{name}/{tag}", s.handleRiotAccount)
 	mux.HandleFunc("GET /matches/{name}/{tag}", s.optionalAuth(s.handleMatches))
 	mux.HandleFunc("GET /signup", s.handleSignupPage)

@@ -19,23 +19,39 @@ import (
 
 // fakeRiot returns whatever data the test gives it, without any network calls.
 type fakeRiot struct {
-	account    *riot.Account
-	matchIDs   []string
-	matches    map[string]*riot.Match
-	err        error
-	matchCalls int
+	account     *riot.Account
+	matchRegion string // returned by MatchRegionByPUUID; empty means "europe"
+	regionErr   error  // returned by MatchRegionByPUUID only
+	matchIDs    []string
+	matches     map[string]*riot.Match
+	err         error
+	matchCalls  int
+	// regionsUsed records the routing region of every match-v5 call.
+	regionsUsed []string
 }
 
 func (f *fakeRiot) AccountByRiotID(region, name, tag string) (*riot.Account, error) {
 	return f.account, f.err
 }
 
-func (f *fakeRiot) MatchIDSByPUUID(puuid string, count int) ([]string, error) {
+func (f *fakeRiot) MatchRegionByPUUID(puuid string) (string, error) {
+	if f.regionErr != nil {
+		return "", f.regionErr
+	}
+	if f.matchRegion == "" {
+		return "europe", f.err
+	}
+	return f.matchRegion, f.err
+}
+
+func (f *fakeRiot) MatchIDSByPUUID(region, puuid string, count int) ([]string, error) {
+	f.regionsUsed = append(f.regionsUsed, region)
 	return f.matchIDs, f.err
 }
 
-func (f *fakeRiot) MatchByID(id string) (*riot.Match, error) {
+func (f *fakeRiot) MatchByID(region, id string) (*riot.Match, error) {
 	f.matchCalls++
+	f.regionsUsed = append(f.regionsUsed, region)
 	return f.matches[id], f.err
 }
 

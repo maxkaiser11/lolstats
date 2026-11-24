@@ -25,7 +25,7 @@ type matchesPage struct {
 func (s *Server) handleMatches(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	acc, err := s.riot.AccountByRiotID("europe", r.PathValue("name"), r.PathValue("tag"))
+	acc, err := s.riot.AccountByRiotID(riot.AccountRegion, r.PathValue("name"), r.PathValue("tag"))
 	if err != nil {
 		log.Printf("lookup account: %v", err)
 		http.Error(w, "Couldn't find that player", http.StatusBadGateway)
@@ -64,9 +64,16 @@ func (s *Server) handleMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 // syncMatches fetches the player's recent match IDs and stores any matches
-// that aren't in the database yet.
+// that aren't in the database yet. Match history lives in the player's home
+// regional cluster (americas, asia, europe or sea), so that is looked up first.
 func (s *Server) syncMatches(ctx context.Context, puuid string) error {
-	ids, err := s.riot.MatchIDSByPUUID(puuid, matchesToShow)
+	region, err := s.riot.MatchRegionByPUUID(puuid)
+	if err != nil {
+		log.Printf("match region for %s (using %s): %v", puuid, riot.DefaultMatchRegion, err)
+		region = riot.DefaultMatchRegion
+	}
+
+	ids, err := s.riot.MatchIDSByPUUID(region, puuid, matchesToShow)
 	if err != nil {
 		return fmt.Errorf("match ids: %w", err)
 	}
@@ -84,7 +91,7 @@ func (s *Server) syncMatches(ctx context.Context, puuid string) error {
 		if known[id] {
 			continue // already stored, no Riot call needed
 		}
-		m, err := s.riot.MatchByID(id)
+		m, err := s.riot.MatchByID(region, id)
 		if err != nil {
 			return fmt.Errorf("fetch match %s: %w", id, err)
 		}

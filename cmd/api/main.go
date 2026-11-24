@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 
@@ -44,6 +45,17 @@ func main() {
 		port = "8080"
 	}
 
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux.Routes(),
+		// Timeouts stop slow or stuck clients from holding connections open.
+		// WriteTimeout leaves room for a first visit that fetches up to 21 matches from Riot.
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+
 	log.Println("Listening on port " + port)
-	log.Fatal(http.ListenAndServe(":"+port, mux.Routes()))
+	log.Fatal(srv.ListenAndServe())
 }

@@ -1,5 +1,7 @@
 # lolstats
 
+[![test](https://github.com/maxkaiser11/lolstats/actions/workflows/test.yml/badge.svg)](https://github.com/maxkaiser11/lolstats/actions/workflows/test.yml)
+
 A Go + Postgres web app for looking up League of Legends players, with match caching, per-champion stats, user accounts and a tested codebase.
 
 **Live demo:** <https://lolstats-production-a282669c.up.railway.app>
@@ -12,7 +14,8 @@ Search any player by Riot ID (`name#tag`) to see their 20 most recent matches an
 
 ## Highlights
 
-- **Fetches only what's missing.** A repeat visit usually costs 1 Riot API call instead of 21, because matches already in the database are never re-fetched.
+- **Fetches only what's missing.** A repeat visit usually costs 2 Riot API calls instead of 22, because matches already in the database are never re-fetched.
+- **Works for every region.** Riot serves match history from the player's home cluster, so lolstats looks up where each player plays (e.g. `kr` → `asia`, `na1` → `americas`) and routes match requests there, falling back to `europe` if the lookup fails.
 - **No half-saved data.** Each match is written with all 10 participants in a single transaction.
 - **Degrades gracefully.** If Riot fails part-way through, the page still shows what's already stored. If Data Dragon is unreachable, the app still starts and shows raw champion IDs.
 - **Security-minded auth.** bcrypt password hashing, cookie sessions where only a SHA-256 hash of each token is stored, cross-origin POST protection, and identical errors for wrong passwords and unknown emails.
@@ -22,7 +25,7 @@ Search any player by Riot ID (`name#tag`) to see their 20 most recent matches an
 
 When a player's page is opened:
 
-1. The app asks Riot for the player's 20 most recent match IDs (one API call).
+1. The app looks up the player's home region, then asks that region for their 20 most recent match IDs.
 2. One query checks which of those matches are already in the database.
 3. Only the missing matches are fetched from Riot and saved, each in its own transaction.
 4. The page is built from the database: recent games, plus champion stats aggregated with SQL across every stored game.
@@ -111,6 +114,8 @@ Tests that need the database are skipped if `TEST_DB_URL` isn't set, so the rest
 
 - the matches page and champion stats, using a fake Riot client instead of the real API
 - that a second visit serves stored matches without fetching them from Riot again
+- that match requests go to the player's home region, with a `europe` fallback, and that every platform maps to the right cluster
+- that `/` serves the home page and unknown paths return 404
 - champion name and icon lookups, including unknown champions and missing data
 - auth redirects on protected routes and blocking of cross-origin POSTs
 - signup, login and logout, including that logout invalidates the session server-side
@@ -119,7 +124,7 @@ Tests that need the database are skipped if `TEST_DB_URL` isn't set, so the rest
 
 ## Deployment
 
-The live demo runs on Railway as a Docker web service with a managed Postgres database. Configuration comes from environment variables (`RIOT_API_KEY`, `DB_URL`), and migrations run automatically on startup, so a deploy is just a push to `main`.
+The live demo runs on Railway as a Docker web service with a managed Postgres database. Configuration comes from environment variables (`RIOT_API_KEY`, `DATABASE_URL`), and migrations run automatically on startup, so a deploy is just a push to `main`.
 
 ## Project structure
 
